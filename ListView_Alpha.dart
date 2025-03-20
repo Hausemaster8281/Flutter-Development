@@ -10,7 +10,7 @@ class MyApp extends StatefulWidget {
 }
 
 class CounterState extends State<MyApp> {
-  List<String> items = ['Burger', 'Sandwich', 'Idly', 'Dosa', 'Uttapam', 'Butter Roll'];
+  List<String> items = ['Burger', 'Sandwich', 'Idly' , 'Dosa', 'Uttapam', 'Butter Roll'];
   List<int> Qty = [0, 0, 0, 0, 0, 0];
 
   @override
