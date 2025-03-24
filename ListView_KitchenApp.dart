@@ -42,8 +42,14 @@ class MyState extends State<MyApp> {
   void navigateToConfirmation() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => ConfirmationPage(cart: cart, priceList: price, foodList: food, removeFromCart: removeFromCart)),
+      MaterialPageRoute(builder: (context) => ConfirmationPage(cart: Map.from(cart), priceList: price, foodList: food, updateCart: updateCart)),
     );
+  }
+
+  void updateCart(Map<String, int> updatedCart) {
+    setState(() {
+      cart = Map.from(updatedCart);
+    });
   }
 
   @override
@@ -107,17 +113,42 @@ class MyState extends State<MyApp> {
   }
 }
 
-class ConfirmationPage extends StatelessWidget {
+class ConfirmationPage extends StatefulWidget {
   final Map<String, int> cart;
   final List<int> priceList;
   final List<String> foodList;
-  final Function(String) removeFromCart;
+  final Function(Map<String, int>) updateCart;
 
-  ConfirmationPage({required this.cart, required this.priceList, required this.foodList, required this.removeFromCart});
+  ConfirmationPage({required this.cart, required this.priceList, required this.foodList, required this.updateCart});
+
+  @override
+  _ConfirmationPageState createState() => _ConfirmationPageState();
+}
+
+class _ConfirmationPageState extends State<ConfirmationPage> {
+  late Map<String, int> cart;
+
+  @override
+  void initState() {
+    super.initState();
+    cart = Map.from(widget.cart);
+  }
+
+  void removeFromCart(String item) {
+    setState(() {
+      if (cart[item] != null && cart[item]! > 0) {
+        cart[item] = cart[item]! - 1;
+        if (cart[item] == 0) {
+          cart.remove(item);
+        }
+      }
+    });
+    widget.updateCart(cart);
+  }
 
   @override
   Widget build(BuildContext context) {
-    int totalPrice = cart.entries.fold(0, (sum, entry) => sum + (priceList[foodList.indexOf(entry.key)] * entry.value).toInt());
+    int totalPrice = cart.entries.fold(0, (sum, entry) => sum + (widget.priceList[widget.foodList.indexOf(entry.key)] * entry.value).toInt());
 
     return Scaffold(
       appBar: AppBar(title: Text("Confirmation")),
@@ -134,13 +165,11 @@ class ConfirmationPage extends StatelessWidget {
                     trailing: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Text("₹${priceList[foodList.indexOf(entry.key)] * entry.value}",
+                        Text("₹${widget.priceList[widget.foodList.indexOf(entry.key)] * entry.value}",
                             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green)),
                         IconButton(
                           icon: Icon(Icons.remove_circle, color: Colors.red),
-                          onPressed: () {
-                            removeFromCart(entry.key);
-                          },
+                          onPressed: () => removeFromCart(entry.key),
                         )
                       ],
                     ),
