@@ -20,6 +20,17 @@ class MyState extends State<MyApp> {
     });
   }
 
+  void removeFromCart(String item) {
+    setState(() {
+      if (cart[item] != null && cart[item]! > 0) {
+        cart[item] = cart[item]! - 1;
+        if (cart[item] == 0) {
+          cart.remove(item);
+        }
+      }
+    });
+  }
+
   int getTotalPrice() {
     int total = 0;
     cart.forEach((key, value) {
@@ -28,10 +39,10 @@ class MyState extends State<MyApp> {
     return total;
   }
 
-  void navigateToCheckout() {
+  void navigateToConfirmation() {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => CheckoutPage(cart: cart, priceList: price, foodList: food)),
+      MaterialPageRoute(builder: (context) => ConfirmationPage(cart: cart, priceList: price, foodList: food, removeFromCart: removeFromCart)),
     );
   }
 
@@ -85,8 +96,8 @@ class MyState extends State<MyApp> {
             children: [
               Text("Total: ₹${getTotalPrice()}", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               ElevatedButton(
-                onPressed: cart.isNotEmpty ? navigateToCheckout : null,
-                child: Text("Checkout"),
+                onPressed: cart.isNotEmpty ? navigateToConfirmation : null,
+                child: Text("Proceed to Confirmation"),
               )
             ],
           ),
@@ -96,19 +107,20 @@ class MyState extends State<MyApp> {
   }
 }
 
-class CheckoutPage extends StatelessWidget {
+class ConfirmationPage extends StatelessWidget {
   final Map<String, int> cart;
   final List<int> priceList;
   final List<String> foodList;
+  final Function(String) removeFromCart;
 
-  CheckoutPage({required this.cart, required this.priceList, required this.foodList});
+  ConfirmationPage({required this.cart, required this.priceList, required this.foodList, required this.removeFromCart});
 
   @override
   Widget build(BuildContext context) {
     int totalPrice = cart.entries.fold(0, (sum, entry) => sum + (priceList[foodList.indexOf(entry.key)] * entry.value).toInt());
 
     return Scaffold(
-      appBar: AppBar(title: Text("Checkout")),
+      appBar: AppBar(title: Text("Confirmation")),
       body: Padding(
         padding: EdgeInsets.all(15),
         child: Column(
@@ -119,8 +131,19 @@ class CheckoutPage extends StatelessWidget {
                   return ListTile(
                     title: Text(entry.key, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                     subtitle: Text("Quantity: ${entry.value}"),
-                    trailing: Text("₹${priceList[foodList.indexOf(entry.key)] * entry.value}",
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green)),
+                    trailing: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text("₹${priceList[foodList.indexOf(entry.key)] * entry.value}",
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green)),
+                        IconButton(
+                          icon: Icon(Icons.remove_circle, color: Colors.red),
+                          onPressed: () {
+                            removeFromCart(entry.key);
+                          },
+                        )
+                      ],
+                    ),
                   );
                 }).toList(),
               ),
@@ -130,7 +153,7 @@ class CheckoutPage extends StatelessWidget {
             SizedBox(height: 20),
             ElevatedButton(
               onPressed: () {},
-              child: Text("Confirm Order"),
+              child: Text("Proceed to Checkout"),
               style: ElevatedButton.styleFrom(padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15)),
             )
           ],
