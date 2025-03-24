@@ -13,6 +13,7 @@ class MyState extends State<MyApp> {
   List<String> food = ['Burger', 'Samosa', 'Sandwich', 'Kachori', 'Momos', 'Idly', 'Dosa'];
   List<int> price = [120, 25, 120, 25, 80, 60, 85];
   Map<String, int> cart = {};
+  bool isDarkMode = false;
 
   void addToCart(int index) {
     setState(() {
@@ -41,7 +42,14 @@ class MyState extends State<MyApp> {
 
   void navigateToConfirmation(BuildContext context) {
     Navigator.of(context).push(
-      MaterialPageRoute(builder: (context) => ConfirmationPage(cart: Map.from(cart), priceList: price, foodList: food, updateCart: updateCart)),
+      MaterialPageRoute(
+        builder: (context) => ConfirmationPage(
+          cart: Map.from(cart),
+          priceList: price,
+          foodList: food,
+          updateCart: updateCart,
+        ),
+      ),
     );
   }
 
@@ -55,11 +63,35 @@ class MyState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(primarySwatch: Colors.orange, fontFamily: 'Arial'),
+      theme: ThemeData(
+        useMaterial3: true,
+        brightness: isDarkMode ? Brightness.dark : Brightness.light,
+        colorSchemeSeed: Colors.orange,
+      ),
       home: Scaffold(
         appBar: AppBar(
           title: Text('My Kitchen', style: TextStyle(fontWeight: FontWeight.bold)),
           centerTitle: true,
+        ),
+        drawer: Drawer(
+          child: ListView(
+            padding: EdgeInsets.zero,
+            children: [
+              DrawerHeader(
+                decoration: BoxDecoration(color: Colors.orangeAccent),
+                child: Text('Settings', style: TextStyle(fontSize: 24, color: Colors.white)),
+              ),
+              ListTile(
+                leading: Icon(isDarkMode ? Icons.dark_mode : Icons.light_mode),
+                title: Text('Toggle Dark Mode'),
+                onTap: () {
+                  setState(() {
+                    isDarkMode = !isDarkMode;
+                  });
+                },
+              ),
+            ],
+          ),
         ),
         body: Padding(
           padding: const EdgeInsets.all(10.0),
@@ -68,7 +100,7 @@ class MyState extends State<MyApp> {
             itemBuilder: (context, index) {
               return Card(
                 elevation: 5,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 child: ListTile(
                   leading: CircleAvatar(
                     backgroundColor: Colors.orangeAccent,
@@ -95,7 +127,10 @@ class MyState extends State<MyApp> {
         ),
         bottomNavigationBar: Container(
           padding: EdgeInsets.all(15),
-          color: Colors.orange[100],
+          decoration: BoxDecoration(
+            color: Colors.orange[100],
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -161,16 +196,9 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
                   return ListTile(
                     title: Text(entry.key, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                     subtitle: Text("Quantity: ${entry.value}"),
-                    trailing: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text("₹${widget.priceList[widget.foodList.indexOf(entry.key)] * entry.value}",
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green)),
-                        IconButton(
-                          icon: Icon(Icons.remove_circle, color: Colors.red),
-                          onPressed: () => removeFromCart(entry.key),
-                        )
-                      ],
+                    trailing: IconButton(
+                      icon: Icon(Icons.remove_circle, color: Colors.red),
+                      onPressed: () => removeFromCart(entry.key),
                     ),
                   );
                 }).toList(),
@@ -178,12 +206,6 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
             ),
             Divider(),
             Text("Total Price: ₹$totalPrice", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {},
-              child: Text("Proceed to Checkout"),
-              style: ElevatedButton.styleFrom(padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15)),
-            )
           ],
         ),
       ),
