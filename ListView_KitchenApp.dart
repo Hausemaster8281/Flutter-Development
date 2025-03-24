@@ -35,7 +35,7 @@ class MyState extends State<MyApp> {
   int getTotalPrice() {
     int total = 0;
     cart.forEach((key, value) {
-      total += (price[food.indexOf(key)] * value).toInt();
+      total += price[food.indexOf(key)] * value;
     });
     return total;
   }
@@ -99,12 +99,22 @@ class MyState extends State<MyApp> {
             itemCount: food.length,
             itemBuilder: (context, index) {
               return Card(
-                elevation: 5,
+                elevation: 3,
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                 child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: Colors.orangeAccent,
-                    child: Icon(Icons.fastfood, color: Colors.white),
+                  leading: ClipRRect(
+                    borderRadius: BorderRadius.circular(50),
+                    child: food[index] == "Burger"
+                        ? Image.network(
+                      "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Cheeseburger.jpg/640px-Cheeseburger.jpg",
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.cover,
+                    )
+                        : CircleAvatar(
+                      backgroundColor: Colors.orangeAccent,
+                      child: Icon(Icons.fastfood, color: Colors.white),
+                    ),
                   ),
                   title: Text(
                     food[index],
@@ -182,7 +192,7 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
 
   @override
   Widget build(BuildContext context) {
-    int totalPrice = cart.entries.fold(0, (sum, entry) => sum + (widget.priceList[widget.foodList.indexOf(entry.key)] * entry.value).toInt());
+    int totalPrice = cart.entries.fold(0, (sum, entry) => sum + (widget.priceList[widget.foodList.indexOf(entry.key)] * entry.value));
 
     return Scaffold(
       appBar: AppBar(title: Text("Confirmation")),
@@ -193,12 +203,24 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
             Expanded(
               child: ListView(
                 children: cart.entries.map((entry) {
-                  return ListTile(
-                    title: Text(entry.key, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    subtitle: Text("Quantity: ${entry.value}"),
-                    trailing: IconButton(
-                      icon: Icon(Icons.remove_circle, color: Colors.red),
-                      onPressed: () => removeFromCart(entry.key),
+                  return Card(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+                    child: ListTile(
+                      title: Text(entry.key, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      subtitle: Text("Quantity: ${entry.value}"),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            "₹${widget.priceList[widget.foodList.indexOf(entry.key)] * entry.value}",
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green),
+                          ),
+                          IconButton(
+                            icon: Icon(Icons.remove_circle, color: Colors.red),
+                            onPressed: () => removeFromCart(entry.key),
+                          ),
+                        ],
+                      ),
                     ),
                   );
                 }).toList(),
@@ -206,6 +228,15 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
             ),
             Divider(),
             Text("Total Price: ₹$totalPrice", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {},
+              child: Text("Proceed to Checkout"),
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+              ),
+            ),
           ],
         ),
       ),
