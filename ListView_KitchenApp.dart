@@ -10,8 +10,8 @@ class MyApp extends StatefulWidget {
 }
 
 class MyState extends State<MyApp> {
-  List food = ['Burger', 'Samosa', 'Sandwich', 'Kachori', 'Momos', 'Idly', 'Dosa'];
-  List price = [120, 25, 120, 25, 80, 60, 85];
+  List<String> food = ['Burger', 'Samosa', 'Sandwich', 'Kachori', 'Momos', 'Idly', 'Dosa'];
+  List<int> price = [120, 25, 120, 25, 80, 60, 85];
   Map<String, int> cart = {};
 
   void addToCart(int index) {
@@ -23,7 +23,7 @@ class MyState extends State<MyApp> {
   int getTotalPrice() {
     int total = 0;
     cart.forEach((key, value) {
-      total += (price[food.indexOf(key)] * value);
+      total += (price[food.indexOf(key)] * value).toInt();
     });
     return total;
   }
@@ -105,7 +105,7 @@ class CheckoutPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    int totalPrice = cart.entries.fold(0, (sum, entry) => sum + (priceList[foodList.indexOf(entry.key)] * entry.value));
+    int totalPrice = cart.entries.fold(0, (sum, entry) => sum + (priceList[foodList.indexOf(entry.key)] * entry.value).toInt());
 
     return Scaffold(
       appBar: AppBar(title: Text("Checkout")),
