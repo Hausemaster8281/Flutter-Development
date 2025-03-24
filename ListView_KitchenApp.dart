@@ -39,9 +39,8 @@ class MyState extends State<MyApp> {
     return total;
   }
 
-  void navigateToConfirmation() {
-    Navigator.push(
-      context,
+  void navigateToConfirmation(BuildContext context) {
+    Navigator.of(context).push(
       MaterialPageRoute(builder: (context) => ConfirmationPage(cart: Map.from(cart), priceList: price, foodList: food, updateCart: updateCart)),
     );
   }
@@ -102,7 +101,7 @@ class MyState extends State<MyApp> {
             children: [
               Text("Total: ₹${getTotalPrice()}", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
               ElevatedButton(
-                onPressed: cart.isNotEmpty ? navigateToConfirmation : null,
+                onPressed: cart.isNotEmpty ? () => navigateToConfirmation(context) : null,
                 child: Text("Proceed to Confirmation"),
               )
             ],
