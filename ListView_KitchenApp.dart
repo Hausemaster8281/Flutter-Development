@@ -23,20 +23,29 @@ class MyState extends State<MyApp> {
   ];
 
   Map<String, int> cart = {};
-  bool isDarkMode = false;
+  List<int> amount = List.filled(7, 0); // Initialize amount list with zeros
 
   void addToCart(int index) {
     setState(() {
       cart[food[index]] = (cart[food[index]] ?? 0) + 1;
+      amount[index] += price[index]; // Update the amount for the item
+    });
+  }
+
+  void removeFromCart(int index) {
+    setState(() {
+      if (cart[food[index]] != null && cart[food[index]]! > 0) {
+        cart[food[index]] = cart[food[index]]! - 1;
+        amount[index] -= price[index]; // Decrease the amount
+        if (cart[food[index]] == 0) {
+          cart.remove(food[index]);
+        }
+      }
     });
   }
 
   int getTotalPrice() {
-    int total = 0;
-    cart.forEach((key, value) {
-      total += price[food.indexOf(key)] * value;
-    });
-    return total;
+    return cart.entries.fold(0, (sum, entry) => sum + (price[food.indexOf(entry.key)] * entry.value));
   }
 
   void navigateToConfirmation(BuildContext context) {
@@ -63,68 +72,57 @@ class MyState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        brightness: isDarkMode ? Brightness.dark : Brightness.light,
-        colorSchemeSeed: Colors.orange,
-      ),
       home: Scaffold(
-        appBar: AppBar(
-          title: Text('My Kitchen', style: TextStyle(fontWeight: FontWeight.bold)),
-          centerTitle: true,
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: ListView.builder(
-            itemCount: food.length,
-            itemBuilder: (context, index) {
-              return Card(
-                elevation: 3,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                child: ListTile(
-                  leading: ClipRRect(
-                    borderRadius: BorderRadius.circular(50),
-                    child: Image.network(
-                      images[index],
-                      width: 50,
-                      height: 50,
-                      fit: BoxFit.cover,
+        appBar: AppBar(title: Text('My Kitchen')),
+        body: ListView.builder(
+          itemCount: food.length,
+          itemBuilder: (context, index) {
+            return Card(
+              child: ListTile(
+                leading: Image.network(images[index], width: 50, height: 50, fit: BoxFit.cover),
+                title: Text(food[index]),
+                subtitle: Text("₹${price[index]}"),
+                trailing: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text("Qty: ${cart[food[index]] ?? 0}"),
+                        SizedBox(width: 10),
+                        Text("₹${amount[index]}", style: TextStyle(fontWeight: FontWeight.bold)),
+                      ],
                     ),
-                  ),
-                  title: Text(
-                    food[index],
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Text(
-                    "₹${price[index]}",
-                    style: TextStyle(fontSize: 16, color: Colors.green[700]),
-                  ),
-                  trailing: IconButton(
-                    icon: Icon(Icons.add_circle, color: Colors.orangeAccent, size: 30),
-                    onPressed: () => addToCart(index),
-                  ),
-                  tileColor: Colors.orange[50],
-                  contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.add_circle, color: Colors.orangeAccent),
+                          onPressed: () => addToCart(index),
+                        ),
+                        SizedBox(width: 10),
+                        Text("₹${amount[index]}"),
+                      ],
+                    ),
+                  ],
                 ),
-              );
-            },
-          ),
+              ),
+            );
+          },
         ),
-        bottomNavigationBar: Container(
-          padding: EdgeInsets.all(15),
-          decoration: BoxDecoration(
-            color: Colors.orange[100],
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text("Total: ₹${getTotalPrice()}", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-              ElevatedButton(
-                onPressed: cart.isNotEmpty ? () => navigateToConfirmation(context) : null,
-                child: Text("Proceed to Confirmation"),
-              )
-            ],
+        bottomNavigationBar: BottomAppBar(
+          child: Padding(
+            padding: EdgeInsets.all(10),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text("Total: ₹${getTotalPrice()}"),
+                ElevatedButton(
+                  onPressed: cart.isNotEmpty ? () => navigateToConfirmation(context) : null,
+                  child: Text("Proceed to Confirmation"),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -132,6 +130,7 @@ class MyState extends State<MyApp> {
   }
 }
 
+// Confirmation Page
 class ConfirmationPage extends StatefulWidget {
   final Map<String, int> cart;
   final List<int> priceList;
@@ -187,26 +186,14 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
                 children: cart.entries.map((entry) {
                   int index = widget.foodList.indexOf(entry.key);
                   return Card(
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                     child: ListTile(
-                      leading: ClipRRect(
-                        borderRadius: BorderRadius.circular(50),
-                        child: Image.network(
-                          widget.images[index],
-                          width: 50,
-                          height: 50,
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                      title: Text(entry.key, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      leading: Image.network(widget.images[index], width: 50, height: 50, fit: BoxFit.cover),
+                      title: Text(entry.key),
                       subtitle: Text("Quantity: ${entry.value}"),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text(
-                            "₹${widget.priceList[index] * entry.value}",
-                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green),
-                          ),
+                          Text("₹${widget.priceList[index] * entry.value}"),
                           IconButton(
                             icon: Icon(Icons.remove_circle, color: Colors.red),
                             onPressed: () => removeFromCart(entry.key),
@@ -224,10 +211,6 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
             ElevatedButton(
               onPressed: () {},
               child: Text("Proceed to Checkout"),
-              style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
-              ),
             ),
           ],
         ),
