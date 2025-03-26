@@ -12,7 +12,6 @@ class MyApp extends StatefulWidget {
 class MyState extends State<MyApp> {
   List<String> food = ['Burger', 'Samosa', 'Sandwich', 'Kachori', 'Momos', 'Idly', 'Dosa'];
   List<int> price = [120, 25, 120, 25, 80, 60, 85];
-  List<int> amount = List.filled(7, 0); // Initializing amount for each item as 0
   List<String> images = [
     "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Cheeseburger.jpg/640px-Cheeseburger.jpg",
     "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Samosa-and-Chatni.jpg/280px-Samosa-and-Chatni.jpg",
@@ -24,18 +23,24 @@ class MyState extends State<MyApp> {
   ];
 
   Map<String, int> cart = {};
-  bool isDarkMode = false;
-
-  void toggleDarkMode(bool value) {
-    setState(() {
-      isDarkMode = value;
-    });
-  }
+  List<int> amount = List.filled(7, 0); // Initialize amount list with zeros
 
   void addToCart(int index) {
     setState(() {
       cart[food[index]] = (cart[food[index]] ?? 0) + 1;
-      amount[index] += price[index]; // Updating the amount for each item
+      amount[index] += price[index]; // Update the amount for the item
+    });
+  }
+
+  void removeFromCart(int index) {
+    setState(() {
+      if (cart[food[index]] != null && cart[food[index]]! > 0) {
+        cart[food[index]] = cart[food[index]]! - 1;
+        amount[index] -= price[index]; // Decrease the amount
+        if (cart[food[index]] == 0) {
+          cart.remove(food[index]);
+        }
+      }
     });
   }
 
@@ -43,125 +48,171 @@ class MyState extends State<MyApp> {
     return cart.entries.fold(0, (sum, entry) => sum + (price[food.indexOf(entry.key)] * entry.value));
   }
 
+  void navigateToConfirmation(BuildContext context) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => ConfirmationPage(
+          cart: Map.from(cart),
+          priceList: price,
+          foodList: food,
+          images: images,
+          updateCart: updateCart,
+        ),
+      ),
+    );
+  }
+
+  void updateCart(Map<String, int> updatedCart) {
+    setState(() {
+      cart = Map.from(updatedCart);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        brightness: isDarkMode ? Brightness.dark : Brightness.light,
-        colorSchemeSeed: Colors.orange,
-      ),
       home: Scaffold(
-        appBar: AppBar(
-          title: Text('My Kitchen', style: TextStyle(fontWeight: FontWeight.bold)),
-          centerTitle: true,
-        ),
-        drawer: Drawer(
-          child: Column(
-            children: [
-              DrawerHeader(
-                decoration: BoxDecoration(color: Colors.orange),
-                child: Center(
-                  child: Text(
-                    'Settings',
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
-                  ),
-                ),
-              ),
-              ListTile(
-                leading: Icon(Icons.dark_mode),
-                title: Text('Dark Mode'),
-                trailing: Switch(
-                  value: isDarkMode,
-                  onChanged: toggleDarkMode,
-                ),
-              ),
-            ],
-          ),
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: ListView.builder(
-            itemCount: food.length,
-            itemBuilder: (context, index) {
-              return Card(
-                elevation: 3,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                child: ListTile(
-                  leading: ClipRRect(
-                    borderRadius: BorderRadius.circular(50),
-                    child: Image.network(
-                      images[index],
-                      width: 50,
-                      height: 50,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  title: Text(
-                    food[index],
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                  ),
-                  subtitle: Text(
-                    "₹${price[index]}",
-                    style: TextStyle(fontSize: 16, color: Colors.green[700]),
-                  ),
-                  trailing: SizedBox(
-                    width: 100, // Fixed width to avoid overflow
-                    child: Column(
+        appBar: AppBar(title: Text('My Kitchen')),
+        body: ListView.builder(
+          itemCount: food.length,
+          itemBuilder: (context, index) {
+            return Card(
+              child: ListTile(
+                leading: Image.network(images[index], width: 50, height: 50, fit: BoxFit.cover),
+                title: Text(food[index]),
+                subtitle: Text("₹${price[index]}"),
+                trailing: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // First Row: Headers
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text("Qty", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                            Text("Amt", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold)),
-                          ],
-                        ),
-                        SizedBox(height: 5), // Spacing
-                        // Second Row: Button & Amount
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            IconButton(
-                              icon: Icon(Icons.add_circle, color: Colors.orangeAccent, size: 24),
-                              onPressed: () => addToCart(index),
-                            ),
-                            Text("₹${amount[index]}", style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.green)),
-                          ],
-                        ),
+                        Text("Qty: ${cart[food[index]] ?? 0}"),
+                        SizedBox(width: 10),
+                        Text("₹${amount[index]}", style: TextStyle(fontWeight: FontWeight.bold)),
                       ],
                     ),
-                  ),
-                  tileColor: Colors.orange[50],
-                  contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        IconButton(
+                          icon: Icon(Icons.add_circle, color: Colors.orangeAccent),
+                          onPressed: () => addToCart(index),
+                        ),
+                        SizedBox(width: 10),
+                        Text("₹${amount[index]}"),
+                      ],
+                    ),
+                  ],
                 ),
-              );
-            },
-          ),
+              ),
+            );
+          },
         ),
-        bottomNavigationBar: SafeArea(
-          child: Container(
-            padding: EdgeInsets.all(15),
-            decoration: BoxDecoration(
-              color: Colors.orange[100],
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-            ),
+        bottomNavigationBar: BottomAppBar(
+          child: Padding(
+            padding: EdgeInsets.all(10),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Text(
-                  "Total: ₹${getTotalPrice()}",
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
+                Text("Total: ₹${getTotalPrice()}"),
                 ElevatedButton(
-                  onPressed: cart.isNotEmpty ? () {} : null,
-                  child: Text("Proceed to Checkout"),
+                  onPressed: cart.isNotEmpty ? () => navigateToConfirmation(context) : null,
+                  child: Text("Proceed to Confirmation"),
                 ),
               ],
             ),
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// Confirmation Page
+class ConfirmationPage extends StatefulWidget {
+  final Map<String, int> cart;
+  final List<int> priceList;
+  final List<String> foodList;
+  final List<String> images;
+  final Function(Map<String, int>) updateCart;
+
+  ConfirmationPage({
+    required this.cart,
+    required this.priceList,
+    required this.foodList,
+    required this.images,
+    required this.updateCart,
+  });
+
+  @override
+  _ConfirmationPageState createState() => _ConfirmationPageState();
+}
+
+class _ConfirmationPageState extends State<ConfirmationPage> {
+  late Map<String, int> cart;
+
+  @override
+  void initState() {
+    super.initState();
+    cart = Map.from(widget.cart);
+  }
+
+  void removeFromCart(String item) {
+    setState(() {
+      if (cart[item] != null && cart[item]! > 0) {
+        cart[item] = cart[item]! - 1;
+        if (cart[item] == 0) {
+          cart.remove(item);
+        }
+      }
+    });
+    widget.updateCart(cart);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    int totalPrice = cart.entries.fold(0, (sum, entry) => sum + (widget.priceList[widget.foodList.indexOf(entry.key)] * entry.value));
+
+    return Scaffold(
+      appBar: AppBar(title: Text("Confirmation")),
+      body: Padding(
+        padding: EdgeInsets.all(15),
+        child: Column(
+          children: [
+            Expanded(
+              child: ListView(
+                children: cart.entries.map((entry) {
+                  int index = widget.foodList.indexOf(entry.key);
+                  return Card(
+                    child: ListTile(
+                      leading: Image.network(widget.images[index], width: 50, height: 50, fit: BoxFit.cover),
+                      title: Text(entry.key),
+                      subtitle: Text("Quantity: ${entry.value}"),
+                      trailing: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text("₹${widget.priceList[index] * entry.value}"),
+                          IconButton(
+                            icon: Icon(Icons.remove_circle, color: Colors.red),
+                            onPressed: () => removeFromCart(entry.key),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+            Divider(),
+            Text("Total Price: ₹$totalPrice", style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () {},
+              child: Text("Proceed to Checkout"),
+            ),
+          ],
         ),
       ),
     );
