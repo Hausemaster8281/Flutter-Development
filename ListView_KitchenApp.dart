@@ -12,6 +12,7 @@ class MyApp extends StatefulWidget {
 class MyState extends State<MyApp> {
   List<String> food = ['Burger', 'Samosa', 'Sandwich', 'Kachori', 'Momos', 'Idly', 'Dosa'];
   List<int> price = [120, 25, 120, 25, 80, 60, 85];
+  List<int> amount = List.filled(food.length, 0);
   List<String> images = [
     "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Cheeseburger.jpg/640px-Cheeseburger.jpg",
     "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Samosa-and-Chatni.jpg/280px-Samosa-and-Chatni.jpg",
@@ -23,29 +24,21 @@ class MyState extends State<MyApp> {
   ];
 
   Map<String, int> cart = {};
-  List<int> amount = List.filled(7, 0); // Initialize amount list with zeros
+  bool isDarkMode = false;
 
   void addToCart(int index) {
     setState(() {
       cart[food[index]] = (cart[food[index]] ?? 0) + 1;
-      amount[index] += price[index]; // Update the amount for the item
-    });
-  }
-
-  void removeFromCart(int index) {
-    setState(() {
-      if (cart[food[index]] != null && cart[food[index]]! > 0) {
-        cart[food[index]] = cart[food[index]]! - 1;
-        amount[index] -= price[index]; // Decrease the amount
-        if (cart[food[index]] == 0) {
-          cart.remove(food[index]);
-        }
-      }
+      amount[index] += price[index]; // Update total for this item
     });
   }
 
   int getTotalPrice() {
-    return cart.entries.fold(0, (sum, entry) => sum + (price[food.indexOf(entry.key)] * entry.value));
+    int total = 0;
+    cart.forEach((key, value) {
+      total += price[food.indexOf(key)] * value;
+    });
+    return total;
   }
 
   void navigateToConfirmation(BuildContext context) {
@@ -72,57 +65,81 @@ class MyState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        useMaterial3: true,
+        brightness: isDarkMode ? Brightness.dark : Brightness.light,
+        colorSchemeSeed: Colors.orange,
+      ),
       home: Scaffold(
-        appBar: AppBar(title: Text('My Kitchen')),
-        body: ListView.builder(
-          itemCount: food.length,
-          itemBuilder: (context, index) {
-            return Card(
-              child: ListTile(
-                leading: Image.network(images[index], width: 50, height: 50, fit: BoxFit.cover),
-                title: Text(food[index]),
-                subtitle: Text("₹${price[index]}"),
-                trailing: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text("Qty: ${cart[food[index]] ?? 0}"),
-                        SizedBox(width: 10),
-                        Text("₹${amount[index]}", style: TextStyle(fontWeight: FontWeight.bold)),
-                      ],
-                    ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        IconButton(
-                          icon: Icon(Icons.add_circle, color: Colors.orangeAccent),
-                          onPressed: () => addToCart(index),
-                        ),
-                        SizedBox(width: 10),
-                        Text("₹${amount[index]}"),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
+        appBar: AppBar(
+          title: Text('My Kitchen', style: TextStyle(fontWeight: FontWeight.bold)),
+          centerTitle: true,
         ),
-        bottomNavigationBar: BottomAppBar(
-          child: Padding(
-            padding: EdgeInsets.all(10),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text("Total: ₹${getTotalPrice()}"),
-                ElevatedButton(
-                  onPressed: cart.isNotEmpty ? () => navigateToConfirmation(context) : null,
-                  child: Text("Proceed to Confirmation"),
-                ),
-              ],
-            ),
+        body: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: ListView.builder(
+            itemCount: food.length,
+            itemBuilder: (context, index) {
+              return Card(
+                elevation: 3,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                child: ListTile(
+                  leading: ClipRRect(
+                    borderRadius: BorderRadius.circular(50),
+                    child: Image.network(
+                      images[index],
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                  title: Text(
+                    food[index],
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  subtitle: Text(
+                    "₹${price[index]}",
+                    style: TextStyle(fontSize: 16, color: Colors.green[700]),
+                  ),
+    trailing: Column(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text("Quantity", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+    SizedBox(width: 10),
+    Text("Amount", style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold)),
+    ],
+    ),
+    Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+    IconButton(
+    icon: Icon(Icons.add_circle, color: Colors.orangeAccent, size: 30),
+    onPressed: () => addToCart(index),
+    ),
+    SizedBox(width: 10),
+    Text("₹${amount[index]}", style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+    ],
+    ),
+    ],
+    ),
+        bottomNavigationBar: Container(
+          padding: EdgeInsets.all(15),
+          decoration: BoxDecoration(
+            color: Colors.orange[100],
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text("Total: ₹${getTotalPrice()}", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+              ElevatedButton(
+                onPressed: cart.isNotEmpty ? () => navigateToConfirmation(context) : null,
+                child: Text("Proceed to Confirmation"),
+              )
+            ],
           ),
         ),
       ),
@@ -130,7 +147,6 @@ class MyState extends State<MyApp> {
   }
 }
 
-// Confirmation Page
 class ConfirmationPage extends StatefulWidget {
   final Map<String, int> cart;
   final List<int> priceList;
@@ -186,14 +202,26 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
                 children: cart.entries.map((entry) {
                   int index = widget.foodList.indexOf(entry.key);
                   return Card(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
                     child: ListTile(
-                      leading: Image.network(widget.images[index], width: 50, height: 50, fit: BoxFit.cover),
-                      title: Text(entry.key),
+                      leading: ClipRRect(
+                        borderRadius: BorderRadius.circular(50),
+                        child: Image.network(
+                          widget.images[index],
+                          width: 50,
+                          height: 50,
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                      title: Text(entry.key, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                       subtitle: Text("Quantity: ${entry.value}"),
                       trailing: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Text("₹${widget.priceList[index] * entry.value}"),
+                          Text(
+                            "₹${widget.priceList[index] * entry.value}",
+                            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green),
+                          ),
                           IconButton(
                             icon: Icon(Icons.remove_circle, color: Colors.red),
                             onPressed: () => removeFromCart(entry.key),
@@ -211,6 +239,10 @@ class _ConfirmationPageState extends State<ConfirmationPage> {
             ElevatedButton(
               onPressed: () {},
               child: Text("Proceed to Checkout"),
+              style: ElevatedButton.styleFrom(
+                padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+              ),
             ),
           ],
         ),
