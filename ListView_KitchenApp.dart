@@ -229,29 +229,55 @@ class HomePage extends StatelessWidget {
                     "₹${price[index]}",
                     style: TextStyle(fontSize: 16, color: Colors.green[700]),
                   ),
-                  SizedBox(height: 5),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                ],
+              ),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Row(
-                        children: [
-                          Text("Quantity: ", style: TextStyle(fontWeight: FontWeight.bold)),
-                          Text("${cart[food[index]] ?? 0}"),
-                        ],
+                      Text(
+                        "Amount",
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[700]
+                        ),
                       ),
-                      Row(
-                        children: [
-                          Text("Amount: ", style: TextStyle(fontWeight: FontWeight.bold)),
-                          Text("₹${(cart[food[index]] ?? 0) * price[index]}"),
-                        ],
+                      Text(
+                        "₹${(cart[food[index]] ?? 0) * price[index]}",
+                        style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green[800]
+                        ),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        "Quantity",
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[700]
+                        ),
+                      ),
+                      Text(
+                        "${cart[food[index]] ?? 0}",
+                        style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold
+                        ),
                       ),
                     ],
                   ),
+                  SizedBox(width: 10),
+                  IconButton(
+                    icon: Icon(Icons.add_circle, color: Colors.orangeAccent, size: 40),
+                    onPressed: () => addToCart(index),
+                  ),
                 ],
-              ),
-              trailing: IconButton(
-                icon: Icon(Icons.add_circle, color: Colors.orangeAccent, size: 30),
-                onPressed: () => addToCart(index),
               ),
               tileColor: Theme.of(context).colorScheme.surfaceVariant,
               contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
