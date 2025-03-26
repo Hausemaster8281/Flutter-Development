@@ -140,12 +140,12 @@ class _FoodOrderingAppState extends State<FoodOrderingApp> {
               ),
             ),
             ListTile(
-              leading: Icon(widget.isDarkMode ? Icons.light_mode : Icons.dark_mode),
-              title: Text('Toggle Theme'),
-              onTap: () {
-                widget.toggleTheme();
-                Navigator.pop(context);
-              },
+              leading: Icon(Icons.dark_mode),
+              title: Text('Dark Mode'),
+              trailing: Switch(
+                value: widget.isDarkMode,
+                onChanged: (_) => widget.toggleTheme(),
+              ),
             ),
           ],
         ),
@@ -200,91 +200,105 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(10.0),
-      child: ListView.builder(
-        itemCount: food.length,
-        itemBuilder: (context, index) {
-          return Card(
-            elevation: 3,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            child: ListTile(
-              leading: ClipRRect(
-                borderRadius: BorderRadius.circular(50),
-                child: Image.network(
-                  images[index],
-                  width: 50,
-                  height: 50,
-                  fit: BoxFit.cover,
-                ),
-              ),
-              title: Text(
-                food[index],
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "₹${price[index]}",
-                    style: TextStyle(fontSize: 16, color: Colors.green[700]),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return ListView.builder(
+          itemCount: food.length,
+          itemBuilder: (context, index) {
+            return Card(
+              elevation: 3,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+              child: ListTile(
+                contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: 5),
+                leading: ClipRRect(
+                  borderRadius: BorderRadius.circular(50),
+                  child: Image.network(
+                    images[index],
+                    width: 50,
+                    height: 50,
+                    fit: BoxFit.cover,
                   ),
-                ],
-              ),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    mainAxisAlignment: MainAxisAlignment.center,
+                ),
+                title: Text(
+                  food[index],
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+                subtitle: Text(
+                  "₹${price[index]}",
+                  style: TextStyle(fontSize: 16, color: Colors.green[700]),
+                ),
+                trailing: ConstrainedBox(
+                  constraints: BoxConstraints(maxWidth: constraints.maxWidth * 0.5),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
-                        "Amount",
-                        style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey[700]
+                      Expanded(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            FittedBox(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    "Amount: ",
+                                    style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.grey[700]
+                                    ),
+                                  ),
+                                  Text(
+                                    "₹${(cart[food[index]] ?? 0) * price[index]}",
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.green[800]
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            FittedBox(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    "Quantity: ",
+                                    style: TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.grey[700]
+                                    ),
+                                  ),
+                                  Text(
+                                    "${cart[food[index]] ?? 0}",
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      Text(
-                        "₹${(cart[food[index]] ?? 0) * price[index]}",
-                        style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green[800]
-                        ),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        "Quantity",
-                        style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.grey[700]
-                        ),
-                      ),
-                      Text(
-                        "${cart[food[index]] ?? 0}",
-                        style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold
-                        ),
+                      SizedBox(width: 10),
+                      IconButton(
+                        icon: Icon(Icons.add_circle, color: Colors.orangeAccent, size: 35),
+                        onPressed: () => addToCart(index),
                       ),
                     ],
                   ),
-                  SizedBox(width: 10),
-                  IconButton(
-                    icon: Icon(Icons.add_circle, color: Colors.orangeAccent, size: 40),
-                    onPressed: () => addToCart(index),
-                  ),
-                ],
+                ),
+                tileColor: Theme.of(context).colorScheme.surfaceVariant,
               ),
-              tileColor: Theme.of(context).colorScheme.surfaceVariant,
-              contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: 10),
-            ),
-          );
-        },
-      ),
+            );
+          },
+        );
+      },
     );
   }
 }
