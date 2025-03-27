@@ -50,13 +50,13 @@ class _FoodOrderingAppState extends State<FoodOrderingApp> {
   List<String> food = ['Burger', 'Samosa', 'Sandwich', 'Kachori', 'Momos', 'Idly', 'Dosa'];
   List<int> price = [120, 25, 120, 25, 80, 60, 85];
   List<String> images = [
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Cheeseburger.jpg/640px-Cheeseburger.jpg",
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Samosa-and-Chatni.jpg/280px-Samosa-and-Chatni.jpg",
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Bologna_sandwich.jpg/250px-Bologna_sandwich.jpg",
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8f/Rajasthani_Raj_Kachori.jpg/250px-Rajasthani_Raj_Kachori.jpg",
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Momo_nepal.jpg/220px-Momo_nepal.jpg",
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/1/11/Idli_Sambar.JPG/220px-Idli_Sambar.JPG",
-    "https://upload.wikimedia.org/wikipedia/commons/thumb/9/9f/Dosa_at_Sri_Ganesha_Restauran%2C_Bangkok_%2844570742744%29.jpg/250px-Dosa_at_Sri_Ganesha_Restauran%2C_Bangkok_%2844570742744%29.jpg"
+    'asset/images/Cheeseburger.jpg',
+    'asset/images/Samosa.jpg',
+    'asset/images/Sandwich.jpg',
+    'asset/images/Kachori.jpg',
+    'asset/images/Momos.jpg',
+    'asset/images/Idli.JPG',
+    'asset/images/Dosa.jpg'
   ];
 
   List<int> amount = [];
@@ -212,7 +212,7 @@ class HomePage extends StatelessWidget {
                 contentPadding: EdgeInsets.symmetric(horizontal: 15, vertical: 5),
                 leading: ClipRRect(
                   borderRadius: BorderRadius.circular(50),
-                  child: Image.network(
+                  child: Image.asset(
                     images[index],
                     width: 50,
                     height: 50,
