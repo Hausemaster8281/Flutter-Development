@@ -12,8 +12,14 @@ class MyApp extends StatefulWidget {
 class MyAppState extends State<MyApp> {
   final _formKey = GlobalKey<FormState>();
   String message = '';
+  var namecontroller=TextEditingController();
+  var emailcontroller=TextEditingController();
+  String? email;
+  String? name;
 
   void myValidator() {
+    name=namecontroller.text.toString();
+    email=emailcontroller.text.toString();
     if (_formKey.currentState!.validate()) {
       setState(() {
         message = 'Login successful';
@@ -23,6 +29,8 @@ class MyAppState extends State<MyApp> {
         message = 'Kindly fill all details';
       });
     }
+    namecontroller.clear();
+    emailcontroller.clear();
   }
 
   @override
@@ -48,6 +56,7 @@ class MyAppState extends State<MyApp> {
                     }
                     return null;
                   },
+                  controller: namecontroller
                 ),
                 SizedBox(height: 20),
                 TextFormField(
@@ -62,6 +71,7 @@ class MyAppState extends State<MyApp> {
                     }
                     return null;
                   },
+                  controller: emailcontroller
                 ),
                 SizedBox(height: 20),
                 ElevatedButton(
