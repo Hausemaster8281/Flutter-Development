@@ -49,6 +49,20 @@ class MyAppState extends State<MyApp> {
                   decoration: InputDecoration(
                     labelText: 'Username',
                     hintText: 'Enter your full name',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                      borderSide: BorderSide(color: Colors.blue, width: 2.0),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                      borderSide: BorderSide(color: Colors.grey, width: 1.5),
+                    ),
+                    prefixIcon: Icon(Icons.person, color: Colors.blue),
+                    filled: true,
+                    fillColor: Colors.grey[200],
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -56,7 +70,7 @@ class MyAppState extends State<MyApp> {
                     }
                     return null;
                   },
-                  controller: namecontroller
+                  controller: namecontroller,
                 ),
                 SizedBox(height: 20),
                 TextFormField(
@@ -64,6 +78,21 @@ class MyAppState extends State<MyApp> {
                   decoration: InputDecoration(
                     labelText: 'Password',
                     hintText: 'Enter your password',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                      borderSide: BorderSide(color: Colors.blue, width: 2.0),
+                    ),
+                    enabledBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                      borderSide: BorderSide(color: Colors.grey, width: 1.5),
+                    ),
+                    prefixIcon: Icon(Icons.lock, color: Colors.blue),
+                    suffixIcon: Icon(Icons.visibility_off, color: Colors.grey),
+                    filled: true,
+                    fillColor: Colors.grey[200],
                   ),
                   validator: (value) {
                     if (value == null || value.isEmpty) {
@@ -71,7 +100,7 @@ class MyAppState extends State<MyApp> {
                     }
                     return null;
                   },
-                  controller: emailcontroller
+                  controller: emailcontroller,
                 ),
                 SizedBox(height: 20),
                 ElevatedButton(
