@@ -11,8 +11,10 @@ class MyApp extends StatefulWidget {
 
 class MyAppState extends State<MyApp> {
   String? val;
-  List Formula=[{'Kilometer:1 }, {'Meter':1000}, {'Centimeter':100000},
-  {'Meter':{'Kilometer'] //Formulae of unit conversion - TO-DO
+  List Formula=[{'Kilometer':[]},
+  {'Meter':[]},
+  {'Centimeter':[]}
+  ]//Formulae of unit conversion
   @override
   return MaterialApp(
       home:Scafflod(
