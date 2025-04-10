@@ -28,9 +28,13 @@ class _MyHomePageState extends State<MyHomePage> {
     Colors.red,
     Colors.green,
     Colors.blue,
+    Colors.pink,
+    Colors.yellow,
+    Colors.purple
   ];
 
   // Function to change color when a button is tapped
+  //This is very ineffifient and leads to conflicting changes when same colors are used in other buttons
   void changeColor(int index) {
     setState(() {
       // Cycle through some colors when tapped
@@ -46,6 +50,18 @@ class _MyHomePageState extends State<MyHomePage> {
         buttonColors[index] = Colors.blueAccent;
       } else if (buttonColors[index] == Colors.blueAccent) {
         buttonColors[index] = Colors.blue;
+      } else if (buttonColors[index] == Colors.pink) {
+        buttonColors[index] = Colors.pinkAccent;
+      } else if (buttonColors[index] == Colors.pinkAccent) {
+        buttonColors[index] = Colors.pink;
+      } else if (buttonColors[index] == Colors.yellow) {
+        buttonColors[index] = Colors.yellowAccent;
+      } else if (buttonColors[index] == Colors.yellowAccent) {
+        buttonColors[index] = Colors.yellow;
+      } else if (buttonColors[index] == Colors.purple) {
+        buttonColors[index] = Colors.purpleAccent;
+      } else if (buttonColors[index] == Colors.purpleAccent) {
+        buttonColors[index] = Colors.purple;
       }
     });
   }
@@ -55,12 +71,12 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       drawer: Drawer(),
       appBar: AppBar(
-        title: Text('MyKitchen'),
+        title: Text('MyTest'),
       ),
       body: GridView.count(
-        crossAxisCount: 3,
-        padding: EdgeInsets.all(20.0),
-        children: List.generate(3, (index) {
+        crossAxisCount: 3, //number of tiles per row/CrossAxis
+        padding: EdgeInsets.all(20.0), //added additional padding for the cards
+        children: List.generate(6, (index) {
           return InkWell(
             onTap: () => changeColor(index),
             child: Card(
