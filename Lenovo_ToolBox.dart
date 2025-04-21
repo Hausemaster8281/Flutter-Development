@@ -1,94 +1,134 @@
-import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 
-void main() => runApp(CoreControllerApp());
+void main() => runApp(CoreFrequencyControllerApp());
 
-class CoreControllerApp extends StatefulWidget {
+class CoreFrequencyControllerApp extends StatefulWidget {
   @override
-  State<CoreControllerApp> createState() => _CoreControllerAppState();
+  _CoreFrequencyControllerAppState createState() =>
+      _CoreFrequencyControllerAppState();
 }
 
-class _CoreControllerAppState extends State<CoreControllerApp> {
-  List<int> cores = List.generate(12, (i) => i);
-  Map<int, bool> coreStatus = {};
-  bool autoRefresh = false;
-  Timer? _refreshTimer;
+class _CoreFrequencyControllerAppState
+    extends State<CoreFrequencyControllerApp> {
+  List<bool> _coresEnabled = [];
+  List<double> _coreFrequencies = [];
+  static const int minFrequency = 400; // Minimum frequency in MHz
+  static const int maxFrequency = 4056; // Maximum frequency in MHz
 
   @override
   void initState() {
     super.initState();
-    fetchCoreStatus();
+    _initializeCores();
   }
 
-  void fetchCoreStatus() async {
-    for (var core in cores) {
-      final file = File('/sys/devices/system/cpu/cpu$core/online');
-      if (await file.exists()) {
-        final value = await file.readAsString();
-        setState(() {
-          coreStatus[core] = value.trim() == '1';
-        });
+  // Initialize the cores' statuses and frequencies
+  Future<void> _initializeCores() async {
+    // Assuming we know the number of cores (you can adjust based on your system)
+    int numberOfCores = 4;  // Example: Assuming 4 cores. Adjust based on your CPU
+    List<bool> coresEnabled = [];
+    List<double> coreFrequencies = [];
+
+    for (int i = 0; i < numberOfCores; i++) {
+      // Check if core i is enabled (online)
+      final result = await Process.run(
+        'cat',
+        ['/sys/devices/system/cpu/cpu$i/online'],
+      );
+      bool isCoreEnabled = result.stdout.trim() == '1';
+      coresEnabled.add(isCoreEnabled);
+
+      if (isCoreEnabled) {
+        // Get the current frequency for the core
+        final freqResult = await Process.run(
+          'cat',
+          ['/sys/devices/system/cpu/cpu$i/cpufreq/scaling_cur_freq'],
+        );
+        coreFrequencies.add(double.parse(freqResult.stdout.trim()) / 1000); // Convert to MHz
+      } else {
+        coreFrequencies.add(0.0);
       }
     }
-  }
 
-  void toggleCore(int core, bool enable) async {
-    final command = 'pkexec /home/hausemaster8281/StudioProjects/lool/lib/cpu-toggle.sh cpu$core ${enable ? '1' : '0'}';
-    final result = await Process.run('bash', ['-c', command]);
-    if (result.exitCode == 0) {
-      fetchCoreStatus();
-    } else {
-      print("Failed: ${result.stderr}");
-    }
-  }
-
-  void toggleAutoRefresh(bool enable) {
     setState(() {
-      autoRefresh = enable;
+      _coresEnabled = coresEnabled;
+      _coreFrequencies = coreFrequencies;
     });
+  }
 
-    _refreshTimer?.cancel();
-    if (enable) {
-      _refreshTimer = Timer.periodic(Duration(seconds: 5), (_) => fetchCoreStatus());
+  // Set CPU frequency for a specific core
+  Future<void> _setCpuFrequency(int core, double frequency) async {
+    try {
+      // Set the frequency using scaling_setspeed (in Hz)
+      await Process.run(
+        'sudo',
+        [
+          'sh',
+          '-c',
+          'echo ${(frequency * 1000).toInt()} > /sys/devices/system/cpu/cpu$core/cpufreq/scaling_setspeed',
+        ],
+      );
+      // Update frequency in the UI after setting it
+      setState(() {
+        _coreFrequencies[core] = frequency;
+      });
+    } catch (e) {
+      print('Error setting frequency: $e');
     }
   }
 
-  @override
-  void dispose() {
-    _refreshTimer?.cancel();
-    super.dispose();
+  // Build the slider for each core
+  Widget _buildFrequencySlider(int core) {
+    return Column(
+      children: [
+        if (_coresEnabled[core]) ...[
+          Text(
+            'Core $core: ${_coreFrequencies[core].toStringAsFixed(2)} MHz',
+            style: TextStyle(fontSize: 16),
+          ),
+          Slider(
+            value: _coreFrequencies[core],
+            min: minFrequency.toDouble(),
+            max: maxFrequency.toDouble(),
+            divisions: (maxFrequency - minFrequency) ~/ 100, // For a step size of 100 MHz
+            label: '${_coreFrequencies[core].toStringAsFixed(2)} MHz',
+            onChanged: (value) {
+              _setCpuFrequency(core, value);
+            },
+          ),
+        ] else ...[
+          Text('Core $core is off', style: TextStyle(fontSize: 16)),
+        ],
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'CPU Core Toggle',
+      title: 'CPU Frequency Controller',
       home: Scaffold(
         appBar: AppBar(
-          title: Text('CPU Core Controller'),
-          actions: [
-            IconButton(
-              icon: Icon(Icons.refresh),
-              onPressed: fetchCoreStatus,
-            ),
-            Switch(
-              value: autoRefresh,
-              onChanged: toggleAutoRefresh,
-            )
-          ],
+          title: Text('CPU Frequency Controller'),
         ),
-        body: ListView(
-          children: cores.map((core) {
-            bool isOnline = coreStatus[core] ?? false;
-            return ListTile(
-              title: Text('CPU$core'),
-              trailing: Switch(
-                value: isOnline,
-                onChanged: (val) => toggleCore(core, val),
+        body: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: ListView(
+            children: [
+              Text(
+                'Adjust CPU Frequency for Each Core',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
               ),
-            );
-          }).toList(),
+              SizedBox(height: 20),
+              for (int i = 0; i < _coresEnabled.length; i++)
+                _buildFrequencySlider(i),
+              SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _initializeCores,
+                child: Text('Refresh Cores and Frequencies'),
+              ),
+            ],
+          ),
         ),
       ),
     );
